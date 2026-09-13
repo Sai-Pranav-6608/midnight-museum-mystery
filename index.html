@@ -1,0 +1,157 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>The Midnight Museum Mystery</title>
+<style>
+@import url('https://fonts.googleapis.com/css2?family=Playfair+Display:wght@600;700&family=Roboto+Mono:wght@400;600&display=swap');
+:root{--bg:#090b12;--panel:#121724;--panel2:#1a2131;--gold:#e7b95c;--text:#eef1f7;--muted:#a9b0c0;--red:#d85b5b;--green:#63c79d}
+*{box-sizing:border-box}body{margin:0;background:radial-gradient(circle at top,#1b2233 0,#090b12 55%);color:var(--text);font-family:'Roboto Mono',monospace;min-height:100vh}
+header{padding:22px 7%;display:flex;justify-content:space-between;align-items:center;border-bottom:1px solid #ffffff12;background:#090b12cc;backdrop-filter:blur(8px);position:sticky;top:0;z-index:5}
+h1,h2,h3{font-family:'Playfair Display',serif}h1{margin:0;font-size:clamp(1.3rem,3vw,2rem);color:var(--gold)}header span{color:var(--muted);font-size:.8rem}
+main{max-width:1150px;margin:auto;padding:30px 20px 60px}.intro{text-align:center;padding:15px 0 25px}.intro h2{font-size:2rem;margin-bottom:8px}.intro p{color:var(--muted);max-width:800px;margin:auto;line-height:1.7}
+.grid{display:grid;grid-template-columns:1.25fr .75fr;gap:20px}.card{background:linear-gradient(145deg,#151b29,#101520);border:1px solid #ffffff12;border-radius:18px;padding:22px;box-shadow:0 15px 40px #0005}
+#scene{min-height:260px;background:linear-gradient(135deg,#252c3a,#12151c);border-radius:14px;padding:28px;position:relative;overflow:hidden}
+#scene:after{content:"";position:absolute;inset:0;background:repeating-linear-gradient(90deg,transparent 0 70px,#ffffff05 71px 72px);pointer-events:none}
+.roomTitle{position:relative;z-index:1;font-size:1.7rem;color:var(--gold);margin:0 0 10px}.story{position:relative;z-index:1;line-height:1.7;color:#d6dae5;max-width:760px}
+.rooms{display:grid;grid-template-columns:repeat(3,1fr);gap:10px;margin-top:15px}.rooms button,.action{border:1px solid #ffffff1c;background:#20283a;color:var(--text);padding:13px;border-radius:10px;cursor:pointer;font-family:inherit;transition:.2s}.rooms button:hover,.action:hover{transform:translateY(-2px);border-color:var(--gold)}.rooms button.active{background:#3a2e19;color:#ffe1a2;border-color:var(--gold)}
+.actions{display:flex;gap:10px;flex-wrap:wrap;margin-top:18px}.action.primary{background:var(--gold);color:#17120a;font-weight:bold}.action:disabled{opacity:.4;cursor:not-allowed;transform:none}
+.side h3{color:var(--gold);margin-top:0}.meter{margin:15px 0}.meter label{display:flex;justify-content:space-between;color:var(--muted);font-size:.85rem}.bar{height:8px;background:#ffffff12;border-radius:20px;margin-top:6px;overflow:hidden}.bar div{height:100%;background:linear-gradient(90deg,var(--gold),#ffe6a4);width:0%;transition:.4s}
+#clueList,#log{padding-left:18px;color:#cbd1de;line-height:1.8;font-size:.9rem}.logbox{max-height:220px;overflow:auto;background:#090c14;border-radius:12px;padding:8px 16px;border:1px solid #ffffff0d}
+.suspects{margin-top:20px}.suspect{display:flex;gap:12px;align-items:center;padding:12px;background:#ffffff06;border-radius:12px;margin:8px 0;cursor:pointer;border:1px solid transparent}.suspect:hover{border-color:#ffffff22}.suspect.selected{border-color:var(--gold);background:#2b2418}.avatar{width:42px;height:42px;border-radius:50%;display:grid;place-items:center;background:#2a3348;font-size:1.3rem}.suspect small{color:var(--muted)}
+.modal{position:fixed;inset:0;background:#000b;display:none;align-items:center;justify-content:center;padding:20px;z-index:10}.modal.show{display:flex}.modalBox{max-width:600px;background:#171d2b;border:1px solid var(--gold);border-radius:18px;padding:30px;text-align:center;box-shadow:0 20px 80px #000}.modalBox h2{color:var(--gold)}.modalBox p{line-height:1.7;color:#d8dce6}.ending{font-size:1.1rem}
+footer{text-align:center;color:var(--muted);font-size:.8rem;padding:20px}
+@media(max-width:800px){.grid{grid-template-columns:1fr}.rooms{grid-template-columns:1fr}header span{display:none}}
+</style>
+</head>
+<body>
+<header><h1>🕵 THE MIDNIGHT MUSEUM MYSTERY</h1><span>CASE FILE #001 • INTERACTIVE DETECTIVE GAME</span></header>
+<main>
+<section class="intro">
+<h2>The Golden Eye has vanished.</h2>
+<p>At exactly midnight, the museum lights went out. When they returned, the priceless artifact was gone. Three suspects remain. Search the rooms, collect clues, question the suspects, and make your accusation.</p>
+</section>
+
+<div class="grid">
+<div class="card">
+<div id="scene">
+<h2 class="roomTitle" id="roomTitle">The Grand Gallery</h2>
+<p class="story" id="story">A shattered display case reflects the moonlight. The silence feels suspicious. Something important happened here.</p>
+</div>
+
+<div class="rooms">
+<button class="room active" data-room="gallery">🏛 Grand Gallery</button>
+<button class="room" data-room="office">🗂 Curator's Office</button>
+<button class="room" data-room="garden">🌙 Moonlit Garden</button>
+</div>
+
+<div class="actions">
+<button class="action primary" id="searchBtn">🔍 Search this room</button>
+<button class="action" id="questionBtn">💬 Question selected suspect</button>
+<button class="action" id="accuseBtn">⚖ Make accusation</button>
+<button class="action" id="resetBtn">↻ New case</button>
+</div>
+
+<div class="card suspects">
+<h3>Suspects</h3>
+<div class="suspect selected" data-suspect="maya"><div class="avatar">👩‍💼</div><div><b>Maya Chen</b><br><small>The museum curator</small></div></div>
+<div class="suspect" data-suspect="victor"><div class="avatar">🧔</div><div><b>Victor Hale</b><br><small>A wealthy collector</small></div></div>
+<div class="suspect" data-suspect="leo"><div class="avatar">🧑‍🔧</div><div><b>Leo Grant</b><br><small>The night security guard</small></div></div>
+</div>
+</div>
+
+<div class="side">
+<div class="card">
+<h3>🔎 Investigation</h3>
+<div class="meter"><label>Clues found <b id="clueCount">0 / 6</b></label><div class="bar"><div id="clueBar"></div></div></div>
+<div class="meter"><label>Questions asked <b id="questionCount">0</b></label><div class="bar"><div id="questionBar"></div></div></div>
+<h3>Evidence</h3><ul id="clueList"><li>No clues yet. Start searching.</li></ul>
+</div>
+
+<div class="card" style="margin-top:20px">
+<h3>📓 Detective's Log</h3>
+<div class="logbox"><ul id="log"><li>The Golden Eye disappeared at midnight.</li><li>Three people were inside the museum.</li></ul></div>
+</div>
+</div>
+</div>
+</main>
+
+<div class="modal" id="modal"><div class="modalBox">
+<h2 id="modalTitle">Case Closed</h2><p class="ending" id="modalText"></p>
+<button class="action primary" id="closeModal">Continue</button>
+</div></div>
+<footer>Made with HTML • CSS • JavaScript • Every clue matters.</footer>
+
+<script>
+const rooms={
+gallery:{title:"The Grand Gallery",story:"A shattered display case reflects the moonlight. The silence feels suspicious. Something important happened here.",clues:[
+"Broken glass lies outside the case, suggesting it was smashed from the inside.",
+"A muddy footprint points toward the staff corridor."]},
+office:{title:"The Curator's Office",story:"Files are neatly stacked, except for one drawer that has been forced open. A desk lamp flickers.",clues:[
+"A visitor log shows Victor arrived unusually late.",
+"A torn maintenance schedule mentions a camera blackout at 11:58 PM."]},
+garden:{title:"The Moonlit Garden",story:"Cold wind moves through the hedges. The garden gate is slightly open, and something glitters near the path.",clues:[
+"A security keycard was dropped beside the gate.",
+"A gold-colored thread is caught on a rose bush."]}
+};
+const suspectData={
+maya:{name:"Maya Chen",answers:["I was in my office checking records.","Victor has wanted the Golden Eye for years.","Only staff knew about the camera maintenance."],guilty:false},
+victor:{name:"Victor Hale",answers:["I came to admire the artifact. Nothing more.","I left the gallery before midnight... I think.","Why would I steal something I could simply buy?"],guilty:false},
+leo:{name:"Leo Grant",answers:["The cameras failed, so I checked the garden gate.","My keycard? I must have dropped it.","I never went near the display case."],guilty:true}
+};
+let room="gallery", suspect="maya", found=new Set(), questions=0, qIndex={maya:0,victor:0,leo:0};
+const title=document.getElementById("roomTitle"),story=document.getElementById("story"),clueList=document.getElementById("clueList"),log=document.getElementById("log");
+
+function addLog(t){let li=document.createElement("li");li.textContent=t;log.appendChild(li);log.parentElement.scrollTop=9999}
+function update(){
+document.getElementById("clueCount").textContent=`${found.size} / 6`;
+document.getElementById("clueBar").style.width=(found.size/6*100)+"%";
+document.getElementById("questionCount").textContent=questions;
+document.getElementById("questionBar").style.width=Math.min(questions/6*100,100)+"%";
+clueList.innerHTML=found.size?[...found].map(x=>`<li>${x}</li>`).join(""):"<li>No clues yet. Start searching.</li>";
+localStorage.setItem("museumMystery",JSON.stringify({found:[...found],questions}));
+}
+document.querySelectorAll(".room").forEach(b=>b.onclick=()=>{
+room=b.dataset.room;document.querySelectorAll(".room").forEach(x=>x.classList.remove("active"));b.classList.add("active");
+title.textContent=rooms[room].title;story.textContent=rooms[room].story;addLog(`Moved to ${rooms[room].title}.`);
+});
+document.getElementById("searchBtn").onclick=()=>{
+let options=rooms[room].clues.filter(c=>!found.has(c));
+if(!options.length){show("Nothing else here","You have already searched this room thoroughly.");return}
+let clue=options[0];found.add(clue);addLog("Found a clue: "+clue);story.textContent="You carefully examine the area and discover new evidence.";update();
+};
+document.querySelectorAll(".suspect").forEach(s=>s.onclick=()=>{
+suspect=s.dataset.suspect;document.querySelectorAll(".suspect").forEach(x=>x.classList.remove("selected"));s.classList.add("selected");addLog(`Selected ${suspectData[suspect].name} for questioning.`);
+});
+document.getElementById("questionBtn").onclick=()=>{
+let d=suspectData[suspect], answer=d.answers[qIndex[suspect]%d.answers.length];qIndex[suspect]++;questions++;
+show(`Questioning ${d.name}`,`"${answer}"`);addLog(`${d.name}: "${answer}"`);update();
+};
+document.getElementById("accuseBtn").onclick=()=>{
+if(found.size<4){show("Not enough evidence","You need at least 4 clues before making an accusation.");return}
+show("Make your accusation","Choose carefully. Your decision will close the case.",true);
+};
+function show(t,txt,accuse=false){
+document.getElementById("modalTitle").textContent=t;document.getElementById("modalText").textContent=txt;
+document.getElementById("modal").classList.add("show");
+const box=document.querySelector(".modalBox");
+let old=box.querySelector(".accChoices");if(old)old.remove();
+if(accuse){let d=document.createElement("div");d.className="accChoices";d.style.margin="20px 0";["maya","victor","leo"].forEach(k=>{
+let b=document.createElement("button");b.className="action";b.style.margin="5px";b.textContent="Accuse "+suspectData[k].name;b.onclick=()=>finish(k);d.appendChild(b)});box.insertBefore(d,document.getElementById("closeModal"))}
+}
+function finish(k){
+let correct=suspectData[k].guilty;
+document.querySelector(".accChoices").remove();
+document.getElementById("modalTitle").textContent=correct?"🎉 CASE SOLVED!":"❌ WRONG ACCUSATION";
+document.getElementById("modalText").textContent=correct?
+"Leo Grant stole the Golden Eye. The dropped keycard, camera blackout, and his contradictory statements exposed him. Excellent detective work!":
+`${suspectData[k].name} was not the thief. The real culprit was Leo Grant. Review the evidence and start a new case.`;
+addLog(correct?"Case solved! Leo was the thief.":"Wrong accusation. Leo was the real culprit.");
+}
+document.getElementById("closeModal").onclick=()=>document.getElementById("modal").classList.remove("show");
+document.getElementById("resetBtn").onclick=()=>{localStorage.removeItem("museumMystery");location.reload()};
+update();
+</script>
+</body>
+</html>
